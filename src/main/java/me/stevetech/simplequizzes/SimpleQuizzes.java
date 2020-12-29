@@ -81,7 +81,8 @@ public class SimpleQuizzes extends JavaPlugin implements Listener {
             // Send message to all players
             getServer().spigot().broadcast(questionMessage);
 
-            getServer().spigot().broadcast(tipMessage);
+            if (!getConfig().getString("messages.tip").isEmpty())
+                getServer().spigot().broadcast(tipMessage);
 
         }, 0, getConfig().getInt("delay") * 20); // Convert seconds to ticks and repeat every amount of ticks
     }
@@ -89,7 +90,7 @@ public class SimpleQuizzes extends JavaPlugin implements Listener {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         // When a player types /quiz or /answer and has permission
-        if (cmd.getName().equalsIgnoreCase("quiz") && sender.hasPermission("answer")) {
+        if (cmd.getName().equalsIgnoreCase("quiz") && sender.hasPermission("simplequizzes.answer")) {
             if (args.length > 0) {
                 if (sender instanceof Player) {
                     Player player = (Player) sender;
@@ -114,16 +115,16 @@ public class SimpleQuizzes extends JavaPlugin implements Listener {
         }
         // When a player types /SimpleQuizzes and has permission
         if (cmd.getName().equalsIgnoreCase("SimpleQuizzes") &&
-                (sender.hasPermission("reload") || sender.hasPermission("start") || sender.hasPermission("stop"))) {
-            if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("reload")) {
+                (sender.hasPermission("simplequizzes.reload") || sender.hasPermission("simplequizzes.start") || sender.hasPermission("simplequizzes.stop"))) {
+            if (args[0].equalsIgnoreCase("simplequizzes.reload") && sender.hasPermission("simplequizzes.reload")) {
                 getServer().getScheduler().cancelTask(task); // Don't want 2 tasks
                 reloadConfig();
                 setup(); // Setup with new configuration
                 getLogger().info("Reloaded Config");
                 sender.sendMessage(prefix + "Reloaded Config");
-            } else if (args[0].equalsIgnoreCase("start") && sender.hasPermission("start")) {
+            } else if (args[0].equalsIgnoreCase("start") && sender.hasPermission("simplequizzes.start")) {
                 setup();
-            } else if (args[0].equalsIgnoreCase("stop") && sender.hasPermission("start")) {
+            } else if (args[0].equalsIgnoreCase("stop") && sender.hasPermission("simplequizzes.start")) {
                 getServer().getScheduler().cancelTask(task);
             } else return false; // Missing reload show the default usage message in plugin.yml
         }
@@ -133,7 +134,7 @@ public class SimpleQuizzes extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        if (event.getMessage().equalsIgnoreCase(questions.get(question).get("answer")) && player.hasPermission("answer")) {
+        if (event.getMessage().equalsIgnoreCase(questions.get(question).get("answer")) && player.hasPermission("simplequizzes.answer")) {
             getServer().getScheduler().runTaskLater(this, () -> {
                 // Send the message
                 if (!answered) {
