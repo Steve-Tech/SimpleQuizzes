@@ -1,0 +1,20 @@
+name: SimpleQuizzes
+main: me.stevetech.simplequizzes.SimpleQuizzes
+version: 1.0
+description: Simple Quizzes on your server
+author: Steve-Tech
+api-version: 1.16
+commands:
+  Quiz:
+    aliases: [answer]
+    description: Answer a quiz
+    usage: /<command> <answer>
+    permission: SimpleQuizzes.answer
+    permission-message: You don't have permission to use this command!
+    default: true
+  SimpleQuizzes:
+    description: Admin functions for SimpleQuizzes
+    usage: /<command> [reload | start | stop]
+    permission: SimpleQuizzes.reload
+    permission-message: You don't have permission to use this command!
+    default: false
