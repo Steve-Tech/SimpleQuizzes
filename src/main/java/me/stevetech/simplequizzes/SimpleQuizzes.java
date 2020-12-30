@@ -7,6 +7,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -32,9 +33,6 @@ public class SimpleQuizzes extends JavaPlugin implements Listener {
         // Start Quizzes & Get data from Config
         setup();
 
-        // Register Events
-        getServer().getPluginManager().registerEvents(this, this);
-
         getLogger().info(getDescription().getName() + ' ' + getDescription().getVersion() + " has been Enabled");
     }
 
@@ -49,6 +47,13 @@ public class SimpleQuizzes extends JavaPlugin implements Listener {
     @SuppressWarnings("unchecked")
     //Suppress Warnings for questions which returns List<capture<?>> when it should return List<Map<String, String>>
     private void setup() {
+        // Register Events
+        if (getConfig().getBoolean("check-chat")) {
+            getServer().getPluginManager().registerEvents(this, this);
+        } else {
+            HandlerList.unregisterAll((Listener) this);
+        }
+
         // Set prefix
         prefix = ChatColor.translateAlternateColorCodes('&', getConfig().getString("messages.prefix"));
 
@@ -97,6 +102,8 @@ public class SimpleQuizzes extends JavaPlugin implements Listener {
                     if (!answered) {
                         if (String.join(" ", args).equalsIgnoreCase(questions.get(question).get("answer"))) {
                             getServer().broadcastMessage(prefix + replacePlaceholders(getConfig().getString("messages.correct-broadcast"), player));
+                            for (String command: getConfig().getStringList("rewards"))
+                                getServer().dispatchCommand(getServer().getConsoleSender(), replacePlaceholders(command, player));
                             answered = true;
                         } else {
                             sender.sendMessage(prefix + replacePlaceholders(getConfig().getString("messages.incorrect"), player));
@@ -116,12 +123,12 @@ public class SimpleQuizzes extends JavaPlugin implements Listener {
         // When a player types /SimpleQuizzes and has permission
         if (cmd.getName().equalsIgnoreCase("SimpleQuizzes") &&
                 (sender.hasPermission("simplequizzes.reload") || sender.hasPermission("simplequizzes.start") || sender.hasPermission("simplequizzes.stop"))) {
-            if (args[0].equalsIgnoreCase("simplequizzes.reload") && sender.hasPermission("simplequizzes.reload")) {
+            if (args[0].equalsIgnoreCase("reload") && sender.hasPermission("simplequizzes.reload")) {
                 getServer().getScheduler().cancelTask(task); // Don't want 2 tasks
                 reloadConfig();
                 setup(); // Setup with new configuration
                 getLogger().info("Reloaded Config");
-                sender.sendMessage(prefix + "Reloaded Config");
+                sender.sendMessage(prefix + ChatColor.YELLOW + "Reloaded Config");
             } else if (args[0].equalsIgnoreCase("start") && sender.hasPermission("simplequizzes.start")) {
                 setup();
             } else if (args[0].equalsIgnoreCase("stop") && sender.hasPermission("simplequizzes.start")) {
@@ -139,6 +146,8 @@ public class SimpleQuizzes extends JavaPlugin implements Listener {
                 // Send the message
                 if (!answered) {
                     getServer().broadcastMessage(prefix + replacePlaceholders(getConfig().getString("messages.correct-broadcast"), player));
+                    for (String command: getConfig().getStringList("rewards"))
+                        getServer().dispatchCommand(getServer().getConsoleSender(), replacePlaceholders(command, player));
                     answered = true;
                 } else {
                     player.sendMessage(prefix + replacePlaceholders(getConfig().getString("messages.late"), player));
