@@ -6,15 +6,29 @@ author: Steve-Tech
 api-version: 1.16
 commands:
   Quiz:
-    aliases: [answer]
+    aliases: answer
     description: Answer a quiz
     usage: /<command> <answer>
     permission: SimpleQuizzes.answer
     permission-message: You don't have permission to use this command!
-    default: true
   SimpleQuizzes:
     description: Admin functions for SimpleQuizzes
     usage: /<command> [reload | start | stop]
-    permission: SimpleQuizzes.reload
+    permission: SimpleQuizzes.admin
     permission-message: You don't have permission to use this command!
-    default: false
+permissions:
+  SimpleQuizzes.answer:
+    description: Allows you to answer a quiz
+    default: true
+  SimpleQuizzes.admin:
+    description: Show admin commands
+    default: op
+  SimpleQuizzes.reload:
+    description: Reloads the plugin
+    default: op
+  SimpleQuizzes.start:
+    description: Starts the quizzes
+    default: op
+  SimpleQuizzes.stop:
+    description: Stops the quizzes
+    default: op

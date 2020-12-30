@@ -31,5 +31,5 @@ rewards: # Commands to run (as console) when player gets an answer correct
 - SimpleQuizzes:
   - Description: Admin functions for SimpleQuizzes
   - Usage: /\<command\> \[reload | start | stop\]
-  - Permission: SimpleQuizzes.reload
+  - Permission: SimpleQuizzes.admin, SimpleQuizzes.reload, SimpleQuizzes.start, SimpleQuizzes.stop
   - Default: false
