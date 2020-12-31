@@ -18,11 +18,12 @@ import java.util.Random;
 
 public class SimpleQuizzes extends JavaPlugin implements Listener {
     int task; // Repeating Task ID
-    List<Map<String,String>> questions; // List of questions from the config
+    List<Map<String, String>> questions; // List of questions from the config
     int question; // Current Question Index
     String prefix; // Prefix of the plugin in chat
     Random rand = new Random(); // Used when selecting questions
     boolean answered; // Whether question has been answered
+    int answers;
 
     @Override
     public void onEnable() {
@@ -66,29 +67,32 @@ public class SimpleQuizzes extends JavaPlugin implements Listener {
             if (!answered) {
                 TextComponent answerMessage = new TextComponent(prefix +
                         replacePlaceholders(getConfig().getString("messages.answer")));
-                answerMessage.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/quiz "));
 
                 getServer().spigot().broadcast(answerMessage);
+                answered = true;
             }
 
-            answered = false; // Question hasn't been answered yet
-            question = rand.nextInt(questions.size()); // Get random question index
+            getServer().getScheduler().runTaskLater(this, () -> {
+                answers = 0;
+                answered = false; // Question hasn't been answered yet
+                question = rand.nextInt(questions.size()); // Get random question index
 
-            // Using TextComponents so that a Click Event can be set
-            TextComponent questionMessage = new TextComponent(prefix +
-                    replacePlaceholders(getConfig().getString("messages.new-question")));
-            questionMessage.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/quiz "));
+                // Using TextComponents so that a Click Event can be set
+                TextComponent questionMessage = new TextComponent(prefix +
+                        replacePlaceholders(getConfig().getString("messages.new-question")));
+                questionMessage.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/quiz "));
 
-            TextComponent tipMessage = new TextComponent(prefix +
-                    replacePlaceholders(getConfig().getString("messages.tip")));
-            tipMessage.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/quiz "));
+                TextComponent tipMessage = new TextComponent(prefix +
+                        replacePlaceholders(getConfig().getString("messages.tip")));
+                tipMessage.setClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/quiz "));
 
-            // Send message to all players
-            getServer().spigot().broadcast(questionMessage);
+                // Send message to all players
+                getServer().spigot().broadcast(questionMessage);
 
-            if (!getConfig().getString("messages.tip").isEmpty())
-                getServer().spigot().broadcast(tipMessage);
+                if (!getConfig().getString("messages.tip").isEmpty())
+                    getServer().spigot().broadcast(tipMessage);
 
+            }, 2 * 20);
         }, 0, getConfig().getInt("delay") * 20); // Convert seconds to ticks and repeat every amount of ticks
     }
 
@@ -102,14 +106,14 @@ public class SimpleQuizzes extends JavaPlugin implements Listener {
                     if (!answered) {
                         if (String.join(" ", args).equalsIgnoreCase(questions.get(question).get("answer"))) {
                             getServer().broadcastMessage(prefix + replacePlaceholders(getConfig().getString("messages.correct-broadcast"), player));
-                            for (String command: getConfig().getStringList("rewards"))
+                            for (String command : getConfig().getStringList("rewards"))
                                 getServer().dispatchCommand(getServer().getConsoleSender(), replacePlaceholders(command, player));
                             answered = true;
                         } else {
                             sender.sendMessage(prefix + replacePlaceholders(getConfig().getString("messages.incorrect"), player));
                         }
-                    } else {
-                        sender.sendMessage(prefix + replacePlaceholders(getConfig().getString("messages.late"), player));
+                    } else if (answers < getConfig().getInt("late-answers")) {
+                        player.sendMessage(prefix + replacePlaceholders(getConfig().getString("messages.late"), player));
                     }
                 } else getLogger().warning("You need to be a player to run this command.");
             } else {
@@ -146,10 +150,11 @@ public class SimpleQuizzes extends JavaPlugin implements Listener {
                 // Send the message
                 if (!answered) {
                     getServer().broadcastMessage(prefix + replacePlaceholders(getConfig().getString("messages.correct-broadcast"), player));
-                    for (String command: getConfig().getStringList("rewards"))
+                    for (String command : getConfig().getStringList("rewards"))
                         getServer().dispatchCommand(getServer().getConsoleSender(), replacePlaceholders(command, player));
                     answered = true;
-                } else {
+                    answers += 1;
+                } else if (answers < getConfig().getInt("late-answers")) {
                     player.sendMessage(prefix + replacePlaceholders(getConfig().getString("messages.late"), player));
                 }
             }, 1);

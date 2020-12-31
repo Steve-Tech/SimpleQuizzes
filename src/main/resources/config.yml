@@ -1,6 +1,7 @@
 # Config File for SimpleQuizzes
 delay: 30 # How long to wait between questions in seconds
-check-chat: true
+check-chat: true # Enable responding from chat
+late-answers: 3 # How many people will the late message be shown to
 messages: # %question%, %answer% and %player% placeholders are supported here.
   prefix: '&4[&2SimpleQuizzes&4]&r '
   new-question: '&6New Question: &b&l%question%'
